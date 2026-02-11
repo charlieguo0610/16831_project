@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="16-831 Intro to Robot Learning: Course Project Demo — Random Agent Baseline on FrankaKitchen-v1.">
+  <meta name="keywords" content="Robot Learning, FrankaKitchen, Random Agent, CMU 16-831">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>16-831 Course Project Demo</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+
+<!-- ==================== Title & Authors ==================== -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">16-831 Intro to Robot Learning:<br>Course Project Demo</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Andrew Li,</span>
+            <span class="author-block">Chu Xia,</span>
+            <span class="author-block">Zixin Guo</span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Robotics Institute, Carnegie Mellon University, USA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Random Agent Video (Combined) ==================== -->
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video id="teaser" autoplay controls muted loop playsinline height="100%">
+        <source src="./static/videos/random_agent_all_episodes.mp4"
+                type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        <b>Random Agent Baseline</b> on FrankaKitchen-v1 (tasks: microwave, kettle).
+        The agent samples uniformly random actions and fails to complete any task.
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Individual Episodes ==================== -->
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-ep0">
+          <video poster="" id="ep0" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/random_microwave_kettle-episode-0.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-ep1">
+          <video poster="" id="ep1" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/random_microwave_kettle-episode-1.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-ep2">
+          <video poster="" id="ep2" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/random_microwave_kettle-episode-2.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Experiment Details ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Random Baseline</h2>
+        <div class="content has-text-justified">
+          <p>
+            We evaluate a <b>random agent</b> that uniformly samples actions from the 9-DoF continuous
+            action space at each timestep. The environment is
+            <a href="https://robotics.farama.org/envs/franka_kitchen/franka_kitchen/">FrankaKitchen-v1</a>
+            (Gymnasium Robotics) with two target tasks: <em>opening the microwave</em> and
+            <em>turning on the kettle</em>.
+          </p>
+          <p>
+            Each episode runs for up to <b>280 steps</b> (~7 seconds of simulation).
+            We evaluate across 6 checkpoints (every 5,000 training steps out of 28,000 total),
+            running 100 evaluation episodes per checkpoint.
+          </p>
+          <p>
+            The random agent achieves a mean return of approximately <b>0.01&ndash;0.07</b> across
+            all checkpoints, with most episodes yielding a return of 0 (no task completed).
+            As shown in the video, the Franka arm executes random joint torques, resulting in
+            erratic motion with no meaningful interaction with the kitchen objects.
+            This establishes a <b>lower-bound baseline</b> against which learned policies can be compared.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learning Curve Plot -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Learning Curve</h2>
+        <div class="content">
+          <img src="./static/images/random_baseline_plot.png"
+               alt="Random baseline learning curve on FrankaKitchen-v1."
+               style="max-width: 100%; height: auto;">
+          <p class="has-text-centered" style="margin-top: 0.5rem; color: #666;">
+            Mean return (&plusmn;1 std) of the random agent over training steps.
+            Performance stays near zero throughout, confirming the absence of learning.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ==================== Footer ==================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p>
+            Website template borrowed from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>,
+            licensed under a
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+              Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
