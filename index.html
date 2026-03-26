@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="16-831 Intro to Robot Learning: Course Project Demo — Random Agent Baseline on FrankaKitchen-v1.">
-  <meta name="keywords" content="Robot Learning, FrankaKitchen, Random Agent, CMU 16-831">
+        content="Offline-to-Online RL with Hierarchical Goal Conditioning for Franka Kitchen.">
+  <meta name="keywords" content="Robot Learning, FrankaKitchen, PPO, SAC, Offline RL, CMU 16-831">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>16-831 Course Project Demo</title>
+  <title>Offline-to-Online RL for Franka Kitchen | 16-831 Project</title>
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
         rel="stylesheet">
@@ -34,15 +34,20 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">16-831 Intro to Robot Learning:<br>Course Project Demo</h1>
-          <div class="is-size-5 publication-authors">
+          <h1 class="title is-1 publication-title">
+            Offline-to-Online RL with Hierarchical Goal Conditioning<br>
+            for Long-Horizon Kitchen Manipulation
+          </h1>
+          <div class="is-size-4 publication-authors" style="margin-bottom: 0.5rem;">
             <span class="author-block">Andrew Li,</span>
             <span class="author-block">Chu Xia,</span>
             <span class="author-block">Zixin Guo</span>
           </div>
-
           <div class="is-size-5 publication-authors">
-            <span class="author-block">Robotics Institute, Carnegie Mellon University, USA</span>
+            <span class="author-block">Robotics Institute, Carnegie Mellon University</span>
+          </div>
+          <div class="is-size-6" style="margin-top: 0.5rem; color: #888;">
+            16-831 Introduction to Robot Learning &mdash; Spring 2026 Course Project
           </div>
         </div>
       </div>
@@ -51,99 +56,158 @@
 </section>
 
 
-<!-- ==================== Random Agent Video (Combined) ==================== -->
-<section class="hero teaser">
+<!-- ==================== Abstract ==================== -->
+<section class="section">
   <div class="container is-max-desktop">
-    <div class="hero-body">
-      <video id="teaser" autoplay controls muted loop playsinline height="100%">
-        <source src="./static/videos/random_agent_all_episodes.mp4"
-                type="video/mp4">
-      </video>
-      <h2 class="subtitle has-text-centered">
-        <b>Random Agent Baseline</b> on FrankaKitchen-v1 (tasks: microwave, kettle).
-        The agent samples uniformly random actions and fails to complete any task.
-      </h2>
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            We address sparse-reward, long-horizon manipulation in the 9-DoF
+            <a href="https://robotics.farama.org/envs/franka_kitchen/franka_kitchen/">Franka Kitchen</a>
+            environment. Standard online RL struggles because meaningful reward
+            signals are extremely rare under random exploration. We compare an
+            <b>on-policy baseline (PPO)</b> against an <b>off-policy baseline (SAC)</b>
+            and a <b>random agent</b>, then propose an offline-to-online approach
+            that warm-starts the policy from an expert dataset combined with a
+            hierarchical goal-conditioning strategy to sequence sub-tasks.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 
-<!-- ==================== Individual Episodes ==================== -->
+<!-- ==================== Video Comparison ==================== -->
+<section class="section" style="padding-top: 0;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Qualitative Results</h2>
+        <p class="subtitle" style="margin-bottom: 1.5rem;">
+          3-episode rollouts from each method on <em>microwave + kettle</em> tasks.
+        </p>
+      </div>
+    </div>
+
+    <!-- Three side-by-side videos -->
+    <div class="columns is-centered">
+      <div class="column is-one-third">
+        <h3 class="title is-5 has-text-centered">Random Agent</h3>
+        <video autoplay controls muted loop playsinline width="100%">
+          <source src="./static/videos/random_agent_all_episodes.mp4" type="video/mp4">
+        </video>
+        <p class="has-text-centered is-size-7" style="margin-top: 0.4rem; color: #888;">
+          Erratic motion. Mean return &asymp; 0.05.
+        </p>
+      </div>
+      <div class="column is-one-third">
+        <h3 class="title is-5 has-text-centered">SAC (Off-Policy)</h3>
+        <video autoplay controls muted loop playsinline width="100%">
+          <source src="./static/videos/sac_agent.mp4" type="video/mp4">
+        </video>
+        <p class="has-text-centered is-size-7" style="margin-top: 0.4rem; color: #888;">
+          Learns kettle reliably. Mean return &asymp; 1.0.
+        </p>
+      </div>
+      <div class="column is-one-third">
+        <h3 class="title is-5 has-text-centered">PPO (On-Policy)</h3>
+        <video autoplay controls muted loop playsinline width="100%">
+          <source src="./static/videos/ppo_agent.mp4" type="video/mp4">
+        </video>
+        <p class="has-text-centered is-size-7" style="margin-top: 0.4rem; color: #888;">
+          Seed 2: solves both tasks. Mean return &asymp; 1.9.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Learning Curves ==================== -->
+<section class="section" style="background: #fafafa;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Learning Curves</h2>
+        <div class="content">
+          <img src="./static/images/comparison_plot.png"
+               alt="Comparison of SAC, PPO, and Random on FrankaKitchen-v1."
+               style="max-width: 100%; height: auto;">
+          <p style="margin-top: 0.5rem; color: #666;">
+            <b>Left:</b> Mean return (&plusmn;1 std) over 800k training steps. SAC (1 seed) vs PPO (3 seeds) vs Random.
+            <b>Right:</b> PPO per-task completion rate per seed. Seed 2 learns both microwave and kettle; seeds 0 and 1 learn only kettle or nothing.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Method Overview ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Method</h2>
+        <div class="content has-text-justified">
+          <p>
+            <b>Environment.</b>&ensp;FrankaKitchen-v1 features a 9-DoF Franka Panda arm in a kitchen
+            with interactive objects. The observation is a 59-dim vector (joint positions/velocities
+            + object states). The reward is sparse: +1 per task completed in a step.
+            Episodes run for 280 steps and terminate early only if all tasks are solved.
+          </p>
+          <p>
+            <b>On-policy baseline (PPO).</b>&ensp;We use PPO with ReLU 2&times;256 actor/value networks,
+            rollout buffer of 2048 steps, and 10 optimization epochs per rollout.
+            Three seeds are run; results show high variance&mdash;one seed solves both tasks, another learns nothing.
+          </p>
+          <p>
+            <b>Off-policy baseline (SAC).</b>&ensp;SAC with 2&times;256 networks, 1M replay buffer,
+            and automatic entropy tuning. Reaches mean return &asymp;1.0 (one task) after ~300k steps,
+            but rarely solves both tasks.
+          </p>
+          <p>
+            <b>Proposed: Offline-to-Online RL.</b>&ensp;We warm-start the policy on an expert dataset
+            using conservative Q-learning (CQL), then fine-tune online. Combined with a learned
+            high-level goal classifier that sequences sub-tasks, this approach aims to achieve
+            return &gt; 1.5 consistently (both tasks completed).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Individual Episode Carousel ==================== -->
 <section class="hero is-light is-small">
   <div class="hero-body">
     <div class="container">
+      <h2 class="title is-4 has-text-centered" style="margin-bottom: 1rem;">
+        Random Agent &mdash; Individual Episodes
+      </h2>
       <div id="results-carousel" class="carousel results-carousel">
         <div class="item item-ep0">
           <video poster="" id="ep0" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/random_microwave_kettle-episode-0.mp4"
-                    type="video/mp4">
+            <source src="./static/videos/random_microwave_kettle-episode-0.mp4" type="video/mp4">
           </video>
         </div>
         <div class="item item-ep1">
           <video poster="" id="ep1" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/random_microwave_kettle-episode-1.mp4"
-                    type="video/mp4">
+            <source src="./static/videos/random_microwave_kettle-episode-1.mp4" type="video/mp4">
           </video>
         </div>
         <div class="item item-ep2">
           <video poster="" id="ep2" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/random_microwave_kettle-episode-2.mp4"
-                    type="video/mp4">
+            <source src="./static/videos/random_microwave_kettle-episode-2.mp4" type="video/mp4">
           </video>
         </div>
       </div>
     </div>
-  </div>
-</section>
-
-
-<!-- ==================== Experiment Details ==================== -->
-<section class="section">
-  <div class="container is-max-desktop">
-
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Random Baseline</h2>
-        <div class="content has-text-justified">
-          <p>
-            We evaluate a <b>random agent</b> that uniformly samples actions from the 9-DoF continuous
-            action space at each timestep. The environment is
-            <a href="https://robotics.farama.org/envs/franka_kitchen/franka_kitchen/">FrankaKitchen-v1</a>
-            (Gymnasium Robotics) with two target tasks: <em>opening the microwave</em> and
-            <em>turning on the kettle</em>.
-          </p>
-          <p>
-            Each episode runs for up to <b>280 steps</b> (~7 seconds of simulation).
-            We evaluate across 6 checkpoints (every 5,000 training steps out of 28,000 total),
-            running 100 evaluation episodes per checkpoint.
-          </p>
-          <p>
-            The random agent achieves a mean return of approximately <b>0.01&ndash;0.07</b> across
-            all checkpoints, with most episodes yielding a return of 0 (no task completed).
-            As shown in the video, the Franka arm executes random joint torques, resulting in
-            erratic motion with no meaningful interaction with the kitchen objects.
-            This establishes a <b>lower-bound baseline</b> against which learned policies can be compared.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Learning Curve Plot -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Learning Curve</h2>
-        <div class="content">
-          <img src="./static/images/random_baseline_plot.png"
-               alt="Random baseline learning curve on FrankaKitchen-v1."
-               style="max-width: 100%; height: auto;">
-          <p class="has-text-centered" style="margin-top: 0.5rem; color: #666;">
-            Mean return (&plusmn;1 std) of the random agent over training steps.
-            Performance stays near zero throughout, confirming the absence of learning.
-          </p>
-        </div>
-      </div>
-    </div>
-
   </div>
 </section>
 
@@ -155,10 +219,10 @@
       <div class="column is-8">
         <div class="content has-text-centered">
           <p>
-            Website template borrowed from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>,
-            licensed under a
-            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
-              Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+            Website template from
+            <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>,
+            licensed under
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
           </p>
         </div>
       </div>
