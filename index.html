@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="Offline-to-Online RL with Hierarchical Goal Conditioning for Franka Kitchen.">
-  <meta name="keywords" content="Robot Learning, FrankaKitchen, PPO, SAC, Offline RL, CMU 16-831">
+        content="Long-horizon multi-task RL on Franka Kitchen: PPO, SAC, MBPO, IQL->SAC offline-to-online, and PPO with goal-conditioned curriculum.">
+  <meta name="keywords" content="Robot Learning, FrankaKitchen, PPO, SAC, MBPO, IQL, Curriculum Learning, Offline-to-Online RL, CMU 16-831">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Offline-to-Online RL for Franka Kitchen | 16-831 Project</title>
+  <title>Offline-to-Online RL & Curriculum Learning for Franka Kitchen | 16-831 Project</title>
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
         rel="stylesheet">
@@ -35,12 +35,12 @@
       <div class="columns is-centered">
         <div class="column has-text-centered">
           <h1 class="title is-1 publication-title">
-            Offline-to-Online RL with Hierarchical Goal Conditioning<br>
+            Offline-to-Online RL and Goal-Conditioned Curriculum Learning<br>
             for Long-Horizon Kitchen Manipulation
           </h1>
           <div class="is-size-4 publication-authors" style="margin-bottom: 0.5rem;">
             <span class="author-block">Andrew Li,</span>
-            <span class="author-block">Chu Xia,</span>
+            <span class="author-block">Xia Chu,</span>
             <span class="author-block">Zixin Guo</span>
           </div>
           <div class="is-size-5 publication-authors">
@@ -66,13 +66,432 @@
           <p>
             We address sparse-reward, long-horizon manipulation in the 9-DoF
             <a href="https://robotics.farama.org/envs/franka_kitchen/franka_kitchen/">Franka Kitchen</a>
-            environment. Standard online RL struggles because meaningful reward
-            signals are extremely rare under random exploration. We compare an
-            <b>on-policy baseline (PPO)</b> against an <b>off-policy baseline (SAC)</b>
-            and a <b>random agent</b>, then propose an offline-to-online approach
-            that warm-starts the policy from an expert dataset combined with a
-            hierarchical goal-conditioning strategy to sequence sub-tasks.
+            environment, where an agent must complete four sequential subtasks
+            (microwave, kettle, bottom burner, light switch). Standard online RL
+            struggles because meaningful reward signals are extremely rare under
+            random exploration. We benchmark a <b>random</b> baseline,
+            <b>PPO</b> (on-policy), <b>SAC</b> (off-policy), and <b>MBPO</b>
+            (model-based), then study two modifications:
+            <b>(M1)</b> Offline-to-Online RL with IQL pretraining followed by
+            SAC fine-tuning, and
+            <b>(M2)</b> PPO with goal-conditioned curriculum learning and dense
+            reward shaping. M1 lifts mean return well above all online baselines
+            within 800k env steps, while M2 is the only method to consistently
+            solve all four tasks (given a longer 20M-step budget).
           </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Main Comparison Plot ==================== -->
+<section class="section" style="background: #fafafa;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Results: All Methods on the Same Figure</h2>
+        <p class="subtitle is-6" style="color: #666; margin-bottom: 1.5rem;">
+          Mean return and per-task completion rate across 800k training steps,
+          averaged over 3 seeds (Random uses 1 seed). Shaded bands are &plusmn;1 std.
+        </p>
+        <div class="content">
+          <img src="./static/images/comparison_plot_4task.png"
+               alt="Comparison of Random, PPO, SAC, MBPO, IQL->SAC, and PPO Curriculum on the 4-task FrankaKitchen benchmark."
+               style="max-width: 100%; height: auto;">
+          <p style="margin-top: 0.5rem; color: #666; text-align: left;">
+            <b>Top:</b> Mean return vs training steps for all six methods. <b>Bottom 2&times;2:</b>
+            per-task completion rate. The maximum achievable return is 4.0 (one per task).
+            <b>IQL&rarr;SAC</b> (red) reaches mean return &asymp;2.5 by 250k steps&mdash;higher than
+            any from-scratch online method&mdash;by warm-starting the policy on the
+            <code>D4RL/kitchen/complete-v2</code> dataset.
+            <b>PPO Curriculum</b> (blue) catches up to SAC's range and is the
+            only method making progress on multiple subtasks within this budget.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Final-step Summary Table ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Final-Step Summary (800k steps)</h2>
+        <table class="table is-striped is-hoverable is-fullwidth" style="font-size: 0.95rem;">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Type</th>
+              <th>Final mean return</th>
+              <th>Peak mean return</th>
+              <th>Tasks reached</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Random</td>
+              <td>baseline</td>
+              <td>0.00</td>
+              <td>0.20</td>
+              <td>none</td>
+            </tr>
+            <tr>
+              <td>PPO (on-policy)</td>
+              <td>baseline</td>
+              <td>0.53 &plusmn; 0.38</td>
+              <td>1.00</td>
+              <td>kettle (53%)</td>
+            </tr>
+            <tr>
+              <td>SAC (off-policy)</td>
+              <td>baseline</td>
+              <td>0.63 &plusmn; 0.90</td>
+              <td>1.73 &plusmn; 0.53</td>
+              <td>bottom burner, light switch (1 seed)</td>
+            </tr>
+            <tr>
+              <td>MBPO (model-based)</td>
+              <td>baseline</td>
+              <td>0.00</td>
+              <td>0.63 &plusmn; 0.29</td>
+              <td>brief kettle signals only</td>
+            </tr>
+            <tr style="background: #f0f8ff;">
+              <td><b>IQL&rarr;SAC (M1)</b></td>
+              <td><b>offline&rarr;online</b></td>
+              <td><b>1.57 &plusmn; 0.57</b></td>
+              <td><b>2.77</b></td>
+              <td>microwave + kettle (+ partial others)</td>
+            </tr>
+            <tr style="background: #f0f8ff;">
+              <td><b>PPO Curriculum (M2)</b></td>
+              <td><b>curriculum + dense</b></td>
+              <td>1.20 (800k); <b>5.7 at 20M</b></td>
+              <td><b>4.0 (all tasks at 20M)</b></td>
+              <td>all four when given full budget</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="color: #888; font-size: 0.85rem;">
+          PPO Curriculum is reported at both 800k (matching all other methods)
+          and 20M (its full training budget across two phases). At 20M steps it
+          becomes the only method to solve all four tasks consistently.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Modification 1 ==================== -->
+<section class="section" style="background: #fafafa;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Modification 1: Offline-to-Online RL (IQL&rarr;SAC)</h2>
+        <div class="content has-text-justified">
+          <p>
+            Sparse rewards make pure online RL struggle to discover any reward
+            signal early in training. We exploit the
+            <code>D4RL/kitchen/complete-v2</code> expert dataset
+            \(\mathcal{D} = \{(s, a, r, s')\}\) and split learning into two stages:
+          </p>
+          <p>
+            <b>Offline phase.</b>&ensp;We pretrain a policy with
+            <a href="https://arxiv.org/abs/2110.06169">Implicit Q-Learning (IQL)</a>:
+            a conservative value function \(Q_\theta(s,a)\) is learned without
+            evaluating out-of-distribution actions, and the policy is updated by
+            advantage-weighted regression toward dataset actions:
+            $$\max_{\pi_\phi}\;\mathbb{E}_{(s,a)\sim\mathcal{D}}\!\left[
+              \exp\!\bigl(\beta\cdot A_\theta(s,a)\bigr)\,\log\pi_\phi(a\mid s)\right].$$
+            This produces a policy that already executes meaningful behaviors
+            and achieves non-zero return without exploring from scratch.
+          </p>
+          <p>
+            <b>Online phase.</b>&ensp;We then fine-tune with SAC, mixing newly
+            collected on-policy transitions with the offline buffer
+            (RLPD-style). The Q-function is recalibrated for a few thousand
+            steps before policy updates resume, preventing the conservative
+            offline value from collapsing once it sees fresh data.
+          </p>
+          <p>
+            <b>Result.</b>&ensp;IQL&rarr;SAC reaches mean return &asymp;2.5 by 250k
+            online steps&mdash;far above any from-scratch baseline&mdash;and reliably
+            solves both <b>microwave</b> and <b>kettle</b>.
+            See the red curve in the comparison figure above.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Modification 2 ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Modification 2: Goal-Conditioned Curriculum Learning</h2>
+        <div class="content has-text-justified">
+          <p>
+            Long-horizon credit assignment is the bottleneck for from-scratch
+            policies: the agent must execute several qualitatively different
+            subtasks within one episode. We address this with a two-phase
+            curriculum and a goal-conditioned PPO policy.
+          </p>
+          <p>
+            <b>Goal-conditioned policy.</b>&ensp;We append a 4-dim one-hot
+            <em>current task</em> indicator \(\mathbf{g}_t \in \{0,1\}^4\) to the
+            observation, so the policy
+            \(\pi_\theta(a \mid s_t, \mathbf{g}_t)\) can specialize per subtask.
+            \(\mathbf{g}_t\) is selected by a deterministic rule: scan tasks in
+            a fixed easy&rarr;hard order and pick the first whose Euclidean
+            distance to its goal exceeds \(\delta=0.3\). Once a task succeeds,
+            \(\mathbf{g}_t\) auto-advances to the next pending task.
+          </p>
+          <p>
+            <b>Dense reward shaping.</b>&ensp;On top of the sparse +1-per-task
+            reward, we add the per-step reduction in goal-distance,
+            $$ r_t = r_t^{\text{sparse}} + \alpha \cdot \sum_k\bigl(d^{(k)}_{t-1} - d^{(k)}_t\bigr),\;\alpha = 1.0. $$
+            This gives the policy a continuous learning signal even when no
+            task has been completed.
+          </p>
+          <p>
+            <b>Phase 1 &mdash; Isolated single-task training.</b>&ensp;
+            16M steps. Each episode resets to a single uniformly sampled
+            subtask; \(\mathbf{g}_t\) is fixed for the episode and reward only
+            considers the active task. Episodes terminate immediately on
+            success. This avoids the difficulty of multi-task credit assignment.
+          </p>
+          <p>
+            <b>Phase 2 &mdash; Sequential multi-task fine-tuning.</b>&ensp;
+            4M steps. \(\mathbf{g}_t\) is re-evaluated every step on the full
+            4-task sequence, and the dense reward is summed over all tasks.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Curriculum: Single-task / Dense Reward ==================== -->
+<section class="section" style="background: #fafafa;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Curriculum Diagnostic: Per-Task &amp; Dense Reward</h2>
+        <div class="content">
+          <img src="./static/images/ppo_single_task_and_microwave.png"
+               alt="PPO single-task breakdown and dense vs sparse reward on microwave."
+               style="max-width: 100%; height: auto;">
+          <p style="margin-top: 0.5rem; color: #666; text-align: left;">
+            <b>Top:</b> PPO trained on each of the four tasks
+            <em>in isolation</em> with dense rewards. Kettle, light switch, and
+            bottom burner are solved within 1M steps, but microwave takes
+            &asymp;3M steps&mdash;motivating the curriculum's
+            easy&rarr;hard ordering. <b>Bottom:</b> on the microwave task alone,
+            PPO with sparse reward never makes progress (red dashed),
+            while the same agent with dense distance shaping learns to solve it
+            after &asymp;2.5M steps (blue). This validates the dense-reward design
+            choice for Phase 1.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Curriculum: Full 20M Run ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Curriculum Learning &mdash; Full 20M-Step Run</h2>
+        <div class="content">
+          <img src="./static/images/ppo_curriculum_learning.png"
+               alt="PPO curriculum learning curves over 20M steps with dense rewards."
+               style="max-width: 100%; height: auto;">
+          <p style="margin-top: 0.5rem; color: #666; text-align: left;">
+            Mean return climbs to &asymp;5.7 (out of a dense-reward maximum
+            &gt;6), and the <em>all-tasks completion rate</em> jumps from 0%
+            during Phase 1 to ~70% in Phase 2 once goal cycling kicks in.
+            Per-task plots show kettle is solved almost immediately, light
+            switch and bottom burner stabilize during Phase 1, and microwave is
+            only fully acquired in Phase 2&mdash;exactly the order set by the
+            heuristic.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Curriculum vs Vanilla PPO ==================== -->
+<section class="section" style="background: #fafafa;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Modification 2 vs. Baseline PPO</h2>
+        <div class="content">
+          <img src="./static/images/ppo_curriculum_vs_ppo.png"
+               alt="PPO curriculum vs baseline PPO with the same hyperparameters."
+               style="max-width: 100%; height: auto;">
+          <p style="margin-top: 0.5rem; color: #666; text-align: left;">
+            Apples-to-apples comparison with matched hyperparameters and
+            training budget (20M steps). Baseline PPO plateaus at mean return
+            &asymp;2.0 and never reaches a 100% all-tasks completion rate.
+            PPO Curriculum decisively wins on bottom burner and light switch,
+            and is the only configuration that finishes with a 100% all-tasks
+            completion rate.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Analysis ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Analysis</h2>
+        <div class="content has-text-justified">
+          <h4 class="title is-5">Learning curves</h4>
+          <p>
+            Among the from-scratch online baselines, <b>SAC</b> reaches
+            non-trivial returns (peak 1.73 &plusmn; 0.53) earliest thanks to
+            its replay buffer, but oscillates heavily after 250k steps.
+            <b>PPO</b> learns more slowly but is steadier&mdash;it converges
+            around mean return 0.5&ndash;0.75 by 600k steps. <b>MBPO</b>
+            briefly discovers reward signal around 60k steps but its
+            ensemble model amplifies errors under 95% synthetic data, and the
+            policy collapses back to zero. <b>Random</b> remains at &asymp;0.
+          </p>
+
+          <h4 class="title is-5">Task-relevant metrics</h4>
+          <p>
+            Per-task completion plots reveal that PPO and SAC reliably solve
+            <em>different</em> tasks: PPO learns kettle (53% across seeds),
+            while SAC learns the bottom burner and light switch on the seed
+            that converges. Neither baseline solves microwave. IQL&rarr;SAC is
+            the only method to reach a non-trivial microwave completion rate
+            within 800k steps. PPO Curriculum is the only method that
+            consistently solves all four when given its full 20M budget.
+          </p>
+
+          <h4 class="title is-5">Failure cases</h4>
+          <p>
+            Three distinct failures are observable.
+            (i) <b>SAC seed sensitivity:</b> only 1 of 3 SAC seeds escapes
+            the zero-return basin; the other two never see reward.
+            (ii) <b>PPO microwave:</b> 0/3 PPO seeds learn microwave under
+            sparse reward&mdash;exploring the precise grasp&rarr;door-open contact
+            sequence is too unlikely for on-policy rollouts. The single-task
+            diagnostic shows PPO needs ~3M steps and dense shaping to crack
+            microwave even in isolation.
+            (iii) <b>MBPO collapse:</b> the SAC policy inside MBPO overfits to
+            model errors under the standard 5% real / 95% synthetic mixing
+            ratio. Training reward decays from 0.087 (160k steps) down to 0.028
+            (800k steps), exactly the failure mode reported by the original
+            MBPO paper for sparse-reward manipulation.
+          </p>
+
+          <h4 class="title is-5">Comparison across all methods</h4>
+          <p>
+            Ranked by final mean return at 800k steps:
+            <b>IQL&rarr;SAC</b> (1.57) &gt; PPO Curriculum (1.20) &gt; SAC (0.63) &gt;
+            PPO (0.53) &gt; MBPO (0.00) = Random (0.00).
+            The two modifications dominate every from-scratch baseline by a
+            wide margin, confirming that <em>either</em> a strong prior
+            (offline data) <em>or</em> structured exploration (curriculum +
+            dense reward) is necessary to make progress on this 4-task
+            sparse-reward problem.
+          </p>
+
+          <h4 class="title is-5">Comparison across modifications</h4>
+          <p>
+            <b>IQL&rarr;SAC vs. PPO Curriculum</b> trade off in interesting ways.
+            IQL&rarr;SAC is dramatically more sample efficient on the
+            sub-tasks present in its offline data (microwave, kettle): it
+            reaches mean return &gt;2 within 250k online steps and inherits
+            "bootstrap" behaviors directly from the demonstrations. However,
+            it inherits the dataset's coverage bias&mdash;bottom burner and
+            light switch, which are under-represented in
+            <code>complete-v2</code>, are not solved.
+            PPO Curriculum is much slower in wall-clock and gradient steps
+            (20M vs 800k), but is <em>self-contained</em>: it only needs the
+            environment plus a one-line distance heuristic for goal cycling
+            and reaches a 100% completion rate across <em>all four</em> tasks.
+            In short: M1 is the right choice when expert data is available;
+            M2 is the right choice when it isn't.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Conclusion ==================== -->
+<section class="section" style="background: #fafafa;">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Conclusion &amp; Future Work</h2>
+        <div class="content has-text-justified">
+          <h4 class="title is-5">Conclusion</h4>
+          <p>
+            On long-horizon, sparse-reward Franka Kitchen, all four
+            from-scratch baselines (random, PPO, SAC, MBPO) plateau well below
+            the achievable return of 4.0 within 800k env steps, with the best
+            seed (SAC) reaching only 1.9. Both proposed modifications cleanly
+            beat the baselines: <b>IQL&rarr;SAC offline-to-online</b> achieves
+            the highest 800k-step performance (1.57 mean return), and
+            <b>PPO with goal-conditioned curriculum + dense rewards</b> is the
+            only method to consistently complete all four sequential subtasks
+            (when given a 20M-step budget). The two modifications target
+            different bottlenecks&mdash;reward sparsity (M1, via expert data)
+            and credit assignment (M2, via curriculum and shaping)&mdash;and
+            either is sufficient to make this benchmark tractable.
+          </p>
+
+          <h4 class="title is-5">Future work</h4>
+          <ul>
+            <li>
+              <b>Combine M1 and M2:</b> use IQL pretraining for the early
+              tasks (where data exists) and goal-conditioned curriculum for
+              fine-tuning to cover the remaining tasks. This should match
+              PPO Curriculum's coverage at a fraction of the gradient steps.
+            </li>
+            <li>
+              <b>Learned high-level policy:</b> replace the rule-based
+              easy&rarr;hard task selector with a small classifier trained on
+              expert trajectories, removing the manual ordering hyperparameter.
+            </li>
+            <li>
+              <b>Robust MBPO:</b> the current MBPO failure suggests
+              uncertainty-aware rollouts (e.g., terminating synthetic
+              trajectories when ensemble disagreement spikes) may be needed
+              for sparse-reward manipulation tasks.
+            </li>
+            <li>
+              <b>Real-robot transfer:</b> all current results are in
+              simulation. Transferring the IQL-pretrained policy to a real
+              Franka arm would test how much of the offline prior survives
+              the sim-to-real gap.
+            </li>
+          </ul>
         </div>
       </div>
     </div>
@@ -81,18 +500,18 @@
 
 
 <!-- ==================== Video Comparison ==================== -->
-<section class="section" style="padding-top: 0;">
+<section class="section">
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
       <div class="column">
-        <h2 class="title is-3">Qualitative Results</h2>
+        <h2 class="title is-3">Qualitative Rollouts</h2>
         <p class="subtitle" style="margin-bottom: 1.5rem;">
-          3-episode rollouts from each method on <em>microwave + kettle</em> tasks.
+          3-episode rollouts from each method on the FrankaKitchen tasks.
         </p>
       </div>
     </div>
 
-    <!-- Three side-by-side videos -->
+    <!-- Three side-by-side baselines -->
     <div class="columns is-centered">
       <div class="column is-one-third">
         <h3 class="title is-5 has-text-centered">Random Agent</h3>
@@ -100,7 +519,7 @@
           <source src="./static/videos/random_agent_all_episodes.mp4" type="video/mp4">
         </video>
         <p class="has-text-centered is-size-7" style="margin-top: 0.4rem; color: #888;">
-          Erratic motion. Mean return &asymp; 0.05.
+          Erratic motion. Mean return &asymp; 0.
         </p>
       </div>
       <div class="column is-one-third">
@@ -109,7 +528,7 @@
           <source src="./static/videos/sac_agent.mp4" type="video/mp4">
         </video>
         <p class="has-text-centered is-size-7" style="margin-top: 0.4rem; color: #888;">
-          Learns kettle reliably. Mean return &asymp; 1.0.
+          Solves bottom burner / light switch (best seed).
         </p>
       </div>
       <div class="column is-one-third">
@@ -118,7 +537,7 @@
           <source src="./static/videos/ppo_agent.mp4" type="video/mp4">
         </video>
         <p class="has-text-centered is-size-7" style="margin-top: 0.4rem; color: #888;">
-          Seed 2: solves both tasks. Mean return &asymp; 1.9.
+          Reliably solves the kettle subtask.
         </p>
       </div>
     </div>
@@ -126,64 +545,7 @@
 </section>
 
 
-<!-- ==================== Learning Curves ==================== -->
-<section class="section" style="background: #fafafa;">
-  <div class="container is-max-desktop">
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Learning Curves</h2>
-        <div class="content">
-          <img src="./static/images/comparison_plot.png"
-               alt="Comparison of SAC, PPO, and Random on FrankaKitchen-v1."
-               style="max-width: 100%; height: auto;">
-          <p style="margin-top: 0.5rem; color: #666;">
-            <b>Left:</b> Mean return (&plusmn;1 std) over 800k training steps. SAC (1 seed) vs PPO (3 seeds) vs Random.
-            <b>Right:</b> PPO per-task completion rate per seed. Seed 2 learns both microwave and kettle; seeds 0 and 1 learn only kettle or nothing.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ==================== Method Overview ==================== -->
-<section class="section">
-  <div class="container is-max-desktop">
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Method</h2>
-        <div class="content has-text-justified">
-          <p>
-            <b>Environment.</b>&ensp;FrankaKitchen-v1 features a 9-DoF Franka Panda arm in a kitchen
-            with interactive objects. The observation is a 59-dim vector (joint positions/velocities
-            + object states). The reward is sparse: +1 per task completed in a step.
-            Episodes run for 280 steps and terminate early only if all tasks are solved.
-          </p>
-          <p>
-            <b>On-policy baseline (PPO).</b>&ensp;We use PPO with ReLU 2&times;256 actor/value networks,
-            rollout buffer of 2048 steps, and 10 optimization epochs per rollout.
-            Three seeds are run; results show high variance&mdash;one seed solves both tasks, another learns nothing.
-          </p>
-          <p>
-            <b>Off-policy baseline (SAC).</b>&ensp;SAC with 2&times;256 networks, 1M replay buffer,
-            and automatic entropy tuning. Reaches mean return &asymp;1.0 (one task) after ~300k steps,
-            but rarely solves both tasks.
-          </p>
-          <p>
-            <b>Proposed: Offline-to-Online RL.</b>&ensp;We warm-start the policy on an expert dataset
-            using conservative Q-learning (CQL), then fine-tune online. Combined with a learned
-            high-level goal classifier that sequences sub-tasks, this approach aims to achieve
-            return &gt; 1.5 consistently (both tasks completed).
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ==================== Individual Episode Carousel ==================== -->
+<!-- ==================== Random Agent Carousel ==================== -->
 <section class="hero is-light is-small">
   <div class="hero-body">
     <div class="container">
